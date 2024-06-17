@@ -3,65 +3,73 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 function Login() {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [message, setMessage] = useState('');
-    const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [message, setMessage] = useState('');
+  const navigate = useNavigate();
 
-    const handleLogin = async () => {
-        try {
-            const response = await axios.post('http://localhost:5000/login', { email, password });
-            const msg = response.data.message;
-            if (msg.includes('user dashboard')) {
-                navigate('/user-dashboard');
-            } else if (msg.includes('admin dashboard')) {
-                navigate('/admin-dashboard');
-            } else {
-                setMessage(msg);
-            }
-        } catch (error) {
-            console.error(error);
-        }
-    };
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    const response = await axios.post('http://localhost:5000/login', { email, password });
+    setMessage(response.data.message);
+    if (response.data.message.includes('admin')) {
+      localStorage.setItem('email', email);
+      navigate('/admin-dashboard');
+    } else if (response.data.message.includes('user')) {
+      localStorage.setItem('email', email);
+      navigate('/user-dashboard');
+    }
+  };
 
-    return (
-        <div className="min-h-screen flex items-center justify-center bg-cover" style={{
-            backgroundImage:
-                'url("https://images.unsplash.com/photo-1530103043960-ef38714abb15?q=80&w=2069&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D")',
-        }}>
-            <div className="bg-white p-8 rounded-lg shadow-lg w-96">
-                <h1 className="text-2xl font-bold mb-6 text-center">Login</h1>
-                <input
-                    type="email"
-                    className="w-full mb-4 p-2 border rounded"
-                    placeholder="Email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                />
-                <input
-                    type="password"
-                    className="w-full mb-4 p-2 border rounded"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                />
-                <button
-                    className="w-full bg-green-500 hover:bg-green-600 text-white p-2 rounded mb-2"
-                    onClick={handleLogin}
-                >
-                    Login
-                </button>
-
-                <p className="text-center">
-                    Don't have an account?{' '}
-                    <span className="text-blue-500 cursor-pointer" onClick={() => navigate('/register')}>
-                        Register here
-                    </span>
-                </p>
-                {message && <p className="mt-4 text-center text-red-500">{message}</p>}
-            </div>
+  return (
+    <div
+      className="min-h-screen flex flex-col items-center justify-center"
+      style={{
+        background: 'linear-gradient(to right, #A8CABA, #5D4157)' 
+      }}
+    >
+      <h1 className="text-6xl font-bold mb-8">Login</h1>
+      <form className="bg-white p-8 rounded-lg shadow-lg w-96" onSubmit={handleLogin}>
+        <div className="mb-4">
+          <label className="block text-gray-700 text-sm font-bold mb-2">Email</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          />
         </div>
-    );
+        <div className="mb-6">
+          <label className="block text-gray-700 text-sm font-bold mb-2">Password</label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          />
+        </div>
+        {message && <p className="text-red-500 text-xs italic">{message}</p>}
+        <div className="flex items-center justify-between">
+          <button
+            type="submit"
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          >
+            Login
+          </button>
+        </div>
+        <p className="mt-4 text-black">
+        Don't have an account?{' '}
+        <button
+          className="text-blue-500"
+          onClick={() => navigate('/register')}
+        >
+          Register 
+        </button> now
+      </p>
+      </form>
+      
+    </div>
+  );
 }
 
 export default Login;
