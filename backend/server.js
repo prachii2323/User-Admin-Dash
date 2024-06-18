@@ -48,14 +48,15 @@ const User = mongoose.model('User', UserSchema);
 
 const BookSchema = new mongoose.Schema({
   title: String,
-  author: String,
-  publisher: String,
+  author: { type: mongoose.Schema.Types.ObjectId, ref: 'Author' },
+  publisher: { type: mongoose.Schema.Types.ObjectId, ref: 'Publisher' },
   publishedDate: Date,
   copies: Number,
   imageUrl: String,
   price: Number,
   summary: String,
 });
+
 
 const PublisherSchema = new mongoose.Schema({
   name: String,
@@ -189,6 +190,32 @@ app.post('/add-book', async (req, res) => {
     // Create the book
     const book = new Book({ title, author: auth._id, publisher: pub._id, publishedDate, copies, imageUrl, price, summary });
     await book.save();
+// decrease number of copies
+app.post('/buy-book', async (req, res) => {
+  const { email, bookId } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    const book = await Book.findById(bookId);
+
+    if (!user || !book) {
+      return res.status(404).json({ success: false, message: 'User or book not found' });
+    }
+
+    if (book.copies <= 0) {
+      return res.status(400).json({ success: false, message: 'No copies left to buy' });
+    }
+
+    // Decrement the number of copies by 1
+    book.copies -= 1;
+    await book.save();
+
+    return res.status(200).json({ success: true, message: 'Book bought successfully' });
+  } catch (error) {
+    console.error('Error buying book:', error);
+    return res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+});
 
     // Update publisher and author with the new book
     pub.authors.push(auth._id);
@@ -242,7 +269,10 @@ app.post('/add-to-wishlist', async (req, res) => {
 app.get('/wishlist', async (req, res) => {
   try {
     const { email } = req.query;
-    const user = await User.findOne({ email }).populate('wishlist');
+    const user = await User.findOne({ email }).populate({
+      path: 'wishlist',
+      populate: { path: 'author', model: 'Author' }
+    });
     if (user) {
       res.status(200).send(user.wishlist);
     } else {
@@ -271,6 +301,52 @@ app.post('/remove-from-wishlist', async (req, res) => {
     res.status(500).send({ message: 'Error removing book from wishlist' });
   }
 });
+
+
+// server.js
+
+// ... existing code ...
+
+app.post('/buy-book', async (req, res) => {
+  const { email, bookId } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    const book = await Book.findById(bookId);
+
+    if (!user || !book) {
+      return res.status(404).json({ success: false, message: 'User or book not found' });
+    }
+
+    if (book.copies <= 0) {
+      return res.status(400).json({ success: false, message: 'No copies left to buy' });
+    }
+
+    // Decrement the number of copies by 1
+    book.copies -= 1;
+    await book.save();
+
+    return res.status(200).json({ success: true, message: 'Book bought successfully' });
+  } catch (error) {
+    console.error('Error buying book:', error);
+    return res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+});
+
+app.get('/books', async (req, res) => {
+  try {
+    const books = await Book.find().populate('author publisher');
+    res.send(books);
+  } catch (err) {
+    console.error('Error fetching books:', err);
+    res.status(500).send({ message: 'Error fetching books' });
+  }
+});
+
+// view
+
+
+
 const port = process.env.PORT || 5000;
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);

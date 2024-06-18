@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
+
 function AdminDashboard() {
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -20,14 +21,17 @@ function AdminDashboard() {
     price: '',
     summary: ''
   });
-  const [books, setBooks] = useState([]); // Added state for books
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // Declare navigate once
 
   useEffect(() => {
     fetchUsers();
     fetchBooks(); // Fetch books when the component mounts
   }, []);
 
+  // Navigate to the View Books page
+  const handleViewBooks = () => {
+    navigate('/view-books');
+  };
   const fetchUsers = async () => {
     try {
       const response = await axios.get('http://localhost:5000/users');
@@ -137,12 +141,17 @@ function AdminDashboard() {
   };
 
   return (
+    
     <div className="min-h-screen flex flex-col items-center justify-center pt-24" style={{ background: 'linear-gradient(to right, #A8CABA, #5D4157)' }}>
       <nav className="w-full fixed top-0 left-0 flex items-center justify-between p-4 bg-gray-800 text-white z-10">
         <h1 className="text-2xl">Admin Dashboard</h1>
         <div>
+          
           <button className="bg-green-500 text-white px-4 py-2 rounded mr-2" onClick={handleAddBook}>
             Add Book
+          </button>
+          <button className="bg-blue-500 text-white px-4 py-2 rounded mr-2" onClick={handleViewBooks}>
+            View Books
           </button>
           <button className="bg-red-500 text-white px-4 py-2 rounded" onClick={handleLogout}>
             Logout

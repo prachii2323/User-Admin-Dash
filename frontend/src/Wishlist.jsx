@@ -1,3 +1,4 @@
+// wishlist.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
@@ -26,6 +27,15 @@ function Wishlist({ email }) {
     }
   };
 
+  const buyBook = async (bookId) => {
+    try {
+      await axios.post('http://localhost:5000/buy-book', { email, bookId });
+      fetchWishlist(); // Refresh the wishlist to update book copies
+    } catch (error) {
+      console.error('Error buying book:', error);
+    }
+  };
+
   return (
     <div>
       <h2>Wishlist</h2>
@@ -36,6 +46,9 @@ function Wishlist({ email }) {
           {wishlist.map(book => (
             <li key={book._id}>
               <span>{book.title}</span>
+              <p>Author: {book.author.name}</p>
+              <p>Publisher: {book.publisher.name}</p>
+              <button onClick={() => buyBook(book._id)}>Buy Now</button>
               <button onClick={() => removeFromWishlist(book._id)}>Remove</button>
             </li>
           ))}
