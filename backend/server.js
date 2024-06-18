@@ -343,7 +343,30 @@ app.get('/books', async (req, res) => {
   }
 });
 
-// view
+//search 
+// Example server-side code in Node.js/Express
+app.get('/books', async (req, res) => {
+  const { search } = req.query;
+  const query = {};
+
+  if (search) {
+    query.$or = [
+      { title: { $regex: search, $options: 'i' } },
+      { 'author.name': { $regex: search, $options: 'i' } },
+      { 'publisher.name': { $regex: search, $options: 'i' } }
+    ];
+  }
+
+  try {
+    const books = await Book.find(query).populate('author publisher');
+    console.log('Books found:', books); // Debug log
+    res.json(books);
+  } catch (error) {
+    console.error('Error fetching books:', error);
+    res.status(500).send('Server error');
+  }
+});
+
 
 
 

@@ -41,6 +41,7 @@ function UserDashboard() {
   const [bookSummary, setBookSummary] = useState('');
   const [wishlistBooks, setWishlistBooks] = useState([]);
   const [showWishlist, setShowWishlist] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -48,9 +49,9 @@ function UserDashboard() {
     fetchWishlist();
   }, []);
 
-  const fetchBooks = async () => {
+  const fetchBooks = async (query = '') => {
     try {
-      const response = await axios.get('http://localhost:5000/books');
+      const response = await axios.get('http://localhost:5000/books', { params: { search: query } });
       setBooks(response.data);
     } catch (error) {
       console.error('Error fetching books:', error);
@@ -122,6 +123,11 @@ function UserDashboard() {
     setShowWishlist(false);
   };
 
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    fetchBooks(searchTerm);
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center pt-24" style={{ background: 'linear-gradient(to right, #A8CABA, #5D4157)' }}>
       <nav className="w-full fixed top-0 left-0 flex items-center justify-between p-4 bg-gray-800 text-white z-10">
@@ -137,6 +143,15 @@ function UserDashboard() {
       </nav>
       <div className="mt-14 p-6 bg-white rounded-lg shadow-lg w-full max-w-6xl">
         <h2 className="text-2xl font-bold mb-4">Books</h2>
+        <form onSubmit={handleSearch} className="mb-4">
+          <input 
+            type="text" 
+            className="w-full p-2 border rounded" 
+            placeholder="Search by author, publisher, book name"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </form>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {books.map(book => (
             <div key={book._id} className="border p-4 rounded-lg shadow-lg flex flex-col">
